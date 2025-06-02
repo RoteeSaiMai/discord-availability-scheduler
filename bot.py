@@ -60,6 +60,11 @@ async def create_polls():
     await game_poll.edit(content=f"{game_poll.content}\n<!--game:{game_poll.id}-->")
 
 async def close_polls_and_schedule():
+    print("🔎 Known text channels:")
+    for c in client.get_all_channels():
+        if isinstance(c, discord.TextChannel):
+            print(f"- {c.name} (ID: {c.id})")
+
     ch = client.get_channel(CHANNEL_ID)
 
     time_msg = game_msg = None
