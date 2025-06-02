@@ -1,10 +1,11 @@
 import os, argparse, yaml, datetime as dt, asyncio, zoneinfo
 import discord
+import pytz
 from dateutil.parser import parse as dt_parse
 
 # ---------- CONFIG ----------
 CFG = yaml.safe_load(open("config.yml", "r", encoding="utf-8"))
-TZ  = zoneinfo.ZoneInfo(CFG["timezone"])
+TZ  = pytz.timezone(CFG["timezone"])
 GUILD_ID   = int(CFG["guild_id"])
 CHANNEL_ID = int(CFG["channel_id"])
 
