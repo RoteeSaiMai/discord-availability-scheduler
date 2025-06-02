@@ -1,0 +1,14 @@
+name: Post weekly polls
+on:
+  schedule: [{cron: '0 9 * * MON'}]        # Monday 09:00 America/Toronto
+  workflow_dispatch:
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install -r requirements.txt
+      - run: python bot.py post
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}

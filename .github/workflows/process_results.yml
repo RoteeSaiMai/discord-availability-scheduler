@@ -1,0 +1,14 @@
+name: Close polls & schedule event
+on:
+  schedule: [{cron: '5 18 * * WED'}]       # Wednesday 18:05 America/Toronto
+  workflow_dispatch:
+
+jobs:
+  close:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install -r requirements.txt
+      - run: python bot.py close
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}

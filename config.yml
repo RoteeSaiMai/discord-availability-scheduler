@@ -1,0 +1,16 @@
+timezone: America/Toronto        # local zone for cron → UTC conversion
+channel_id: 000000000000000000   # ⬅️ paste the ID of #test-game-night
+guild_id:   000000000000000000   # ⬅️ paste your server ID
+
+time_slots:
+  - Tue 21:00
+  - Wed 21:00
+  - Thu 21:00
+  - Sat 21:00
+
+games:
+  Catan:           3   # min players
+  Skribbl.io:   3
+  Gartic Phone:    3
+  Monopoly:        4
+  Code Names: 5
