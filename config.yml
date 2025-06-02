@@ -1,6 +1,6 @@
 timezone: America/Toronto        # local zone for cron → UTC conversion
-channel_id: 000000000000000000   # ⬅️ paste the ID of #test-game-night
-guild_id:   000000000000000000   # ⬅️ paste your server ID
+channel_id: 1377855189892993197   # ⬅️ paste the ID of #test-game-night
+guild_id:   1156058081759871126   # ⬅️ paste your server ID
 
 time_slots:
   - Tue 21:00
