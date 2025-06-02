@@ -1,0 +1,12 @@
+# votes for each option — tweak freely
+time_poll:
+  Tue 19:00: 2
+  Wed 20:00: 3
+  Thu 20:00: 1
+  Sat 19:00: 0
+
+game_poll:
+  Catan: 2
+  Skribbl.io: 5
+  Gartic Phone: 4
+  Code Names: 1
