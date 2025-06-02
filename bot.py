@@ -38,6 +38,11 @@ def pick_winner(time_votes: dict[str, int],
 # ---------- DISCORD ACTIONS ----------
 async def create_polls():
     ch = client.get_channel(CHANNEL_ID)
+    if ch is None:
+        print("❌ Could not find channel. Check config.yml channel_id.")
+        return
+    print("📨 Channel found, creating polls...")
+
 
     time_poll = await ch.create_poll(
         question="⏰ Choose a time for this week’s game night",
@@ -64,8 +69,10 @@ async def close_polls_and_schedule():
         if "<!--game:" in msg.content:
             game_msg = msg
     if not time_msg or not game_msg:
+        print("❌ Poll messages not found. Did the demo wait long enough?")
         await ch.send("⚠️ Could not find active polls.")
         return
+
 
     best_time = max(time_msg.poll.answers, key=lambda a: a.votes).answer_text
     game_votes = {a.answer_text: a.votes for a in game_msg.poll.answers}
