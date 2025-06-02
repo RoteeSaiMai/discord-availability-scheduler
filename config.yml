@@ -1,6 +1,13 @@
-timezone: America/Toronto        # local zone for cron → UTC conversion
-channel_id: 1377855189892993197   # ⬅️ paste the ID of #test-game-night
-guild_id:   1156058081759871126   # ⬅️ paste your server ID
+timezone: America/Toronto
+guild_id:   1156058081759871126
+channel_id: 1377855189892993197
+
+voice_channel: gaming          # voice channel where the event will start
+event_hours: 3                 # length of scheduled event
+
+# when to post & close polls (cron-style, local TZ)
+poll_post:   "Mon 09:00"       # bot will TELL users this value in its embed
+poll_close:  "Wed 18:00"
 
 time_slots:
   - Tue 21:00
@@ -9,8 +16,12 @@ time_slots:
   - Sat 21:00
 
 games:
-  Catan:           3   # min players
-  Skribbl.io:   3
-  Gartic Phone:    3
-  Monopoly:        4
-  Code Names: 5
+  Catan:         3
+  Skribbl.io:    3
+  Gartic Phone:  3
+  Monopoly:      4
+  Code Names:    5
+
+# optional look-&-feel
+embed_colour_time:  "#2ecc71"
+embed_colour_game:  "#3498db"
