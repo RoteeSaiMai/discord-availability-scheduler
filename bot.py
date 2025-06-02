@@ -123,6 +123,9 @@ async def main():
         raise RuntimeError("BOT_TOKEN environment variable not set.")
 
     await client.login(token)
+    print("✅ Logged in")
+    await client.connect(reconnect=False)   # populate cache
+
     await client.connect(reconnect=False)   # populate cache
 
     if args.mode == "post":
