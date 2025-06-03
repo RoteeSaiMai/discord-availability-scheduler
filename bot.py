@@ -45,14 +45,26 @@ def next_occurrence(text:str)->dt.datetime:
     while t < dt.datetime.now(TZ): t += dt.timedelta(days=7)
     return t
 
-def pick_winner(tv:dict[str,int], gv:dict[str,int]) -> tuple[str|None,str|None]:
-    """Return (time, game) or (None,None) if no game meets threshold."""
+def pick_winner(tv: dict[str, int],
+                gv: dict[str, int]) -> tuple[str | None, str | None]:
+    """
+    • pick the time-slot with most availability
+    • pick the highest-voted game that
+        – has ≥1 real vote               (someone actually wants it)
+        – min-players ≤ players free in that slot
+    """
     best_time = max(tv, key=tv.get)
-    ordered   = sorted(gv.items(), key=lambda kv:(-kv[1],kv[0]))
+    available = tv[best_time]
+
+    ordered = sorted(gv.items(), key=lambda kv: (-kv[1], kv[0]))  # votes ↓, A-Z
     for name, votes in ordered:
-        if votes >= CFG["games"][name]:
+        if votes == 0:
+            continue                       # nobody clicked this game
+        if CFG["games"][name] <= available:
             return best_time, name
     return None, None
+
+
 
 def cron_pretty(cron:str)->str:
     """'Mon 09:00' -> 'every **Mon** at **09:00**'"""
@@ -116,21 +128,30 @@ async def close_and_schedule() -> None:
                 if discord.utils.get(t_msg.reactions,emoji=DIGITS[i]) else 0)
           for i,slot in enumerate(CFG["time_slots"])}
 
-    gv = {g:(discord.utils.get(g_msg.reactions,emoji=DIGITS[i]).count-1
-             if discord.utils.get(g_msg.reactions,emoji=DIGITS[i]) else 0)
-          for i,g in enumerate(CFG["games"])}
+    gv = {}
+    for i, game in enumerate(CFG["games"]):
+        react = discord.utils.get(g_msg.reactions, emoji=DIGITS[i])
+        human_votes = (react.count - 1) if react else 0      # subtract the bot’s own
+        gv[game] = max(human_votes, 0)                       # never negative
+
 
     time_win, game_win = pick_winner(tv, gv)
 
     if game_win is None:
-        await ch.send("🚫 Not enough votes to meet any game's minimum players. "
-                      "No event scheduled this week.")
+        await ch.send(
+            "🚫 Everyone’s availability is too scattered — "
+            "no game meets its minimum player count this week."
+        )
         await t_msg.delete(); await g_msg.delete()
         return
 
-    voters = gv[game_win]
-    await ch.send(f"🎉 **{game_win}** wins with **{voters}** players "
-                  f"at **{time_win}**!")
+
+    voters = tv[time_win]            # players actually free at that slot
+    await ch.send(
+        f"🎉 **{game_win}** wins (min {CFG['games'][game_win]}) "
+        f"with **{voters}** people free at **{time_win}**!"
+    )
+
 
     guild = client.get_guild(GID)
     voice = discord.utils.get(guild.voice_channels, name=VC_NAME)
