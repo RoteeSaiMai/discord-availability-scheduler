@@ -1,13 +1,14 @@
 timezone: America/Toronto
 guild_id:   1156058081759871126
-channel_id: 1377855189892993197
+channel_id: 1377855189892993197 # Main
+# channel_id: 1384915339212755015 # Test
 
-voice_channel: gaming          # voice channel where the event will start
+voice_channel: gaming vc          # voice channel where the event will start
 event_hours: 3                 # length of scheduled event
 
 # when to post & close polls (cron-style, local TZ)
-poll_post:   "Mon 09:00"       # bot will TELL users this value in its embed
-poll_close:  "Wed 18:00"
+poll_post:   "Fri 5:00"       # bot will TELL users this value in its embed
+poll_close:  "Mon 12:00"
 
 time_slots:
   - Tue 21:00

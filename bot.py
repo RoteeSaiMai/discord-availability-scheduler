@@ -40,27 +40,36 @@ client  = discord.Client(intents=INTENTS)
 _runner_cfg: dict[str,str|None] = {"mode":None,"file":None}
 
 # ───────── HELPERS ─────────
-def next_occurrence(text:str)->dt.datetime:
+FMT = "%a %Y-%m-%d %H:%M"                       # one place for the display format
+
+def next_occurrence(text: str) -> dt.datetime:
+    """Return the next occurrence of 'Thu 21:00' in Toronto TZ."""
     t = dt_parse(text, fuzzy=True).replace(tzinfo=TZ)
-    while t < dt.datetime.now(TZ): t += dt.timedelta(days=7)
+    while t < dt.datetime.now(TZ):
+        t += dt.timedelta(days=7)
     return t
+
+def pretty_slot(text: str) -> str:
+    """Return a dated string like 'Thu 2025-06-19 21:00'."""
+    return next_occurrence(text).strftime(FMT)
 
 def pick_winner(tv: dict[str, int],
                 gv: dict[str, int]) -> tuple[str | None, str | None]:
     """
-    • pick the time-slot with most availability
-    • pick the highest-voted game that
-        – has ≥1 real vote               (someone actually wants it)
-        – min-players ≤ players free in that slot
+    • Pick the time-slot with the most people free.
+    • Choose the highest-voted game that
+        – has ≥1 real vote
+        – meets its min-player threshold at that slot.
+    Return (None, None) if nothing qualifies.
     """
     best_time = max(tv, key=tv.get)
-    available = tv[best_time]
+    avail     = tv[best_time]
 
-    ordered = sorted(gv.items(), key=lambda kv: (-kv[1], kv[0]))  # votes ↓, A-Z
+    ordered = sorted(gv.items(), key=lambda kv: (-kv[1], kv[0]))
     for name, votes in ordered:
         if votes == 0:
-            continue                       # nobody clicked this game
-        if CFG["games"][name] <= available:
+            continue
+        if CFG["games"][name] <= avail:
             return best_time, name
     return None, None
 
@@ -84,12 +93,13 @@ async def create_polls() -> None:
         f"React below to vote!"
     )
 
-    # time embed
+    # dated time-slot embed
+    slots_display = [pretty_slot(s) for s in CFG["time_slots"]]
     e_time = discord.Embed(
         title="⏰ Choose a time",
         colour=COLOUR_TIME,
-        description="\n".join(f"{DIGITS[i]}  `{s}`"
-                              for i,s in enumerate(CFG["time_slots"]))
+        description="\n".join(f"{DIGITS[i]}  `{d}`"
+                            for i, d in enumerate(slots_display))
     )
     t_msg = await ch.send(embed=e_time)
 
@@ -123,6 +133,9 @@ async def close_and_schedule() -> None:
         if t_msg and g_msg: break
     if not t_msg or not g_msg:
         await ch.send("⚠️ Couldn't find the polls to close."); return
+    
+    # dated list must match the one used when posting
+    slots_display = [pretty_slot(s) for s in CFG["time_slots"]]
 
     tv = {slot:(discord.utils.get(t_msg.reactions,emoji=DIGITS[i]).count-1
                 if discord.utils.get(t_msg.reactions,emoji=DIGITS[i]) else 0)
@@ -138,20 +151,21 @@ async def close_and_schedule() -> None:
     time_win, game_win = pick_winner(tv, gv)
 
     if game_win is None:
-        await ch.send(
-            "🚫 Everyone’s availability is too scattered — "
-            "no game meets its minimum player count this week."
-        )
+        await ch.send("🚫 Everyone’s availability is too scattered — "
+                    "no game meets its minimum-player count this week.\n"
+                    "_(Voting period "
+                    f"{t_msg.created_at.astimezone(TZ).strftime('%Y-%m-%d')} → "
+                    f"{dt.datetime.now(TZ).strftime('%Y-%m-%d')})_")
         await t_msg.delete(); await g_msg.delete()
         return
 
-
     voters = tv[time_win]            # players actually free at that slot
     await ch.send(
-        f"🎉 **{game_win}** wins (min {CFG['games'][game_win]}) "
-        f"with **{voters}** people free at **{time_win}**!"
+        f"✅ Voting period **{t_msg.created_at.astimezone(TZ).strftime('%Y-%m-%d')} "
+        f"→ {dt.datetime.now(TZ).strftime('%Y-%m-%d')}** is finished.\n"
+        f"🎉 **{game_win}** wins (min {CFG['games'][game_win]}) with "
+        f"**{voters}** people free at **{time_win}**."
     )
-
 
     guild = client.get_guild(GID)
     voice = discord.utils.get(guild.voice_channels, name=VC_NAME)
@@ -159,11 +173,11 @@ async def close_and_schedule() -> None:
         await ch.send(f"⚠️ Voice channel '{VC_NAME}' not found.")
         return
 
-    start = next_occurrence(time_win)
+    start = dt.datetime.strptime(time_win, FMT).replace(tzinfo=TZ)
     await guild.create_scheduled_event(
         name=f"{game_win} — Weekly Game Night",
         start_time=start.astimezone(dt.timezone.utc),
-        end_time=(start+dt.timedelta(hours=EVENT_HOURS)).astimezone(dt.timezone.utc),
+        end_time=(start + dt.timedelta(hours=EVENT_HOURS)).astimezone(dt.timezone.utc),
         description=(f"Scheduled from weekly poll.\n"
                      f"**Time:** {time_win}\n**Game:** {game_win}\n"
                      f"**Players committed:** {voters}"),

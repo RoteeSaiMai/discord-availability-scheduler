@@ -1,6 +1,6 @@
 name: Post weekly polls
 on:
-  schedule: [{cron: '0 9 * * MON'}]        # Monday 09:00 America/Toronto
+  schedule: [{cron: '0 9 * * FRI'}]        # Monday 09:00 America/Toronto
   workflow_dispatch:
 
 jobs:
