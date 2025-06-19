@@ -11,10 +11,10 @@ poll_post:   "Fri 5:00"       # bot will TELL users this value in its embed
 poll_close:  "Mon 12:00"
 
 time_slots:
-  - Tue 21:00
-  - Wed 21:00
-  - Thu 21:00
-  - Sat 21:00
+  - Tue 21:30
+  - Wed 21:30
+  - Thu 21:30
+  - Sat 21:30
 
 games:
   Catan:         3
